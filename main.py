@@ -1,9 +1,12 @@
 import os
 import shutil
 from contextlib import asynccontextmanager
+from typing import List
 from fastapi import FastAPI, Depends, UploadFile, File, HTTPException, status
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 
 from app import database, schemas, crud, worker
 
@@ -15,11 +18,19 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="AI Meeting Assistant API", version="1.0.0", lifespan=lifespan)
 
+# Монтируем папку со скриптами, чтобы они были доступны сайту
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
 @app.get("/", response_class=HTMLResponse)
 async def serve_home_page():
     template_path = os.path.join("app", "templates", "index.html")
     with open(template_path, "r", encoding="utf-8") as f:
         return f.read()
+
+@app.get("/meetings", response_model=List[schemas.MeetingResponse])
+async def list_meetings(db: AsyncSession = Depends(database.get_db)):
+    result = await db.execute(select(database.Meeting).order_by(database.Meeting.created_at.desc()))
+    return result.scalars().all()
 
 @app.post("/upload", response_model=schemas.MeetingResponse, status_code=status.HTTP_201_CREATED)
 async def upload_audio(file: UploadFile = File(...), db: AsyncSession = Depends(database.get_db)):
