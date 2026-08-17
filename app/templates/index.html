@@ -9,7 +9,7 @@
             background-color: #111827;
             color: #f3f4f6;
             font-family: system-ui, -apple-system, sans-serif;
-            min-height: 100-vh;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -85,24 +85,10 @@
             text-align: center;
             font-weight: 500;
         }
-        .status-loading {
-            background-color: rgba(30, 58, 138, 0.5);
-            color: #93c5fd;
-            border: 1px solid #1e40af;
-        }
-        .status-processing {
-            background-color: rgba(120, 53, 4, 0.5);
-            color: #fde047;
-            border: 1px solid #854d0e;
-        }
-        .status-error {
-            background-color: rgba(127, 29, 29, 0.5);
-            color: #fca5a5;
-            border: 1px solid #991b1b;
-        }
-        .results {
-            margin-top: 32px;
-        }
+        .status-loading { background-color: rgba(30, 58, 138, 0.5); color: #93c5fd; border: 1px solid #1e40af; }
+        .status-processing { background-color: rgba(120, 53, 4, 0.5); color: #fde047; border: 1px solid #854d0e; }
+        .status-error { background-color: rgba(127, 29, 29, 0.5); color: #fca5a5; border: 1px solid #991b1b; }
+        .results { margin-top: 32px; }
         .block {
             padding: 20px;
             background-color: #374151;
@@ -111,19 +97,34 @@
         }
         .block-summary { border-left: 4px solid #10b981; }
         .block-transcript { border-left: 4px solid #3b82f6; }
-        .block h3 {
-            margin-top: 0;
-            margin-bottom: 8px;
-            font-size: 18px;
-        }
+        .block h3 { margin-top: 0; margin-bottom: 8px; font-size: 18px; }
         .text-summary { color: #34d399; }
         .text-transcript { color: #60a5fa; }
-        .content {
-            color: #d1d5db;
-            line-height: 1.6;
-            margin: 0;
-        }
+        .content { color: #d1d5db; line-height: 1.6; margin: 0; }
         .hidden { display: none; }
+        
+        .history-section {
+            margin-top: 32px;
+            border-top: 1px solid #374151;
+            padding-top: 24px;
+        }
+        .history-title { font-size: 20px; font-weight: 700; margin-bottom: 16px; color: #e5e7eb; }
+        .history-list { display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto; }
+        .history-item {
+            background-color: #374151;
+            padding: 12px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid transparent;
+            transition: background-color 0.2s;
+        }
+        .history-item:hover { background-color: #4b5563; border-color: #4b5563; }
+        .badge { font-size: 12px; padding: 2px 8px; border-radius: 12px; font-weight: 600; }
+        .badge-completed { background-color: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .badge-processing { background-color: rgba(234, 179, 8, 0.2); color: #fde047; }
     </style>
 </head>
 <body>
@@ -152,58 +153,14 @@
                 <p id="transcriptText" class="content" style="white-space: pre-line;"></p>
             </div>
         </div>
+
+        <div class="history-section">
+            <div class="history-title">📜 History</div>
+            <div id="historyList" class="history-list"></div>
+        </div>
     </div>
 
-    <script>
-        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const fileInput = document.getElementById('audioFile');
-            const statusBlock = document.getElementById('statusBlock');
-            const resultBlock = document.getElementById('resultBlock');
-            
-            if (!fileInput.files.length) return;
-
-            const formData = new FormData();
-            formData.append('file', fileInput.files[0]);
-
-            statusBlock.classList.remove('hidden');
-            statusBlock.className = "status status-loading";
-            statusBlock.innerText = "⏳ Uploading audio file to server...";
-            resultBlock.classList.add('hidden');
-
-            try {
-                const response = await fetch('/upload', { method: 'POST', body: formData });
-                const data = await response.json();
-                
-                if (response.status !== 201) {
-                    throw new Error(data.detail || "Upload failed");
-                }
-
-                checkStatus(data.id);
-            } catch (err) {
-                statusBlock.className = "status status-error";
-                statusBlock.innerText = `❌ Error: ${err.message}`;
-            }
-        });
-
-        async function checkStatus(id) {
-            const statusBlock = document.getElementById('statusBlock');
-            statusBlock.className = "status status-processing";
-            statusBlock.innerText = "🤖 AI is transcribing and summarizing your meeting. Please wait...";
-
-            const interval = setInterval(async () => {
-                const res = await fetch(`/meetings/${id}`);
-                const data = await res.json();
-
-                if (data.status === 'completed') {
-                    clearInterval(interval);
-                    statusBlock.classList.add('hidden');
-                    document.getElementById('resultBlock').classList.remove('hidden');
-                    document.getElementById('summaryText').innerText = data.summary;
-                    document.getElementById('transcriptText').innerText = data.transcript;
-                }
-            }, 2000);
-        }
-    </script>
+    <!-- Подключаем наш внешний скрипт -->
+    <script src="/static/main.js"></script>
 </body>
 </html>
