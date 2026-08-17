@@ -8,6 +8,7 @@ A containerized microservice application built with Python to handle asynchronou
 * **SQLAlchemy 2.0 (Async)** — Non-blocking ORM integration for seamless state updates.
 * **Redis** — Fast message broker facilitating tasks between the API and the worker cluster.
 * **Celery** — Distributed background task worker to offload heavy processing from the web thread.
+* **Flower** — Real-time web-based monitoring and administration tool for Celery.
 * **OpenAI API** — Embedded Whisper-1 for speech transcription and GPT models for core analysis.
 * **Docker & Docker Compose** — Orchestration with dedicated isolated networks and Shared Data Volumes.
 
@@ -68,7 +69,9 @@ Ensure **Docker Desktop** is running on your machine.
    docker compose up --build
    ```
 
-Once deployed, access the interactive Web documentation at: **http://localhost:8000/docs**
+Once deployed, the systems will be available at:
+* 🌐 **Interactive Web Documentation (Swagger UI)**: http://localhost:8000/docs
+* 📊 **Celery Flower Monitoring Dashboard**: http://localhost:5555
 
 ## 🧪 API Specifications
 
